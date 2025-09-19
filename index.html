@@ -6,13 +6,7 @@
   <title>유아용 영어 기초단어 퀴즈</title>
   <style>
     :root{
-      --bg:#0f172a; /* slate-900 */
-      --card:#111827cc; /* slate-900/80 */
-      --text:#e5e7eb; /* slate-200 */
-      --muted:#94a3b8; /* slate-400 */
-      --primary:#22c55e; /* green-500 */
-      --danger:#ef4444; /* red-500 */
-      --accent:#38bdf8; /* sky-400 */
+      --bg:#0f172a; --card:#111827cc; --text:#e5e7eb; --muted:#94a3b8; --primary:#22c55e; --danger:#ef4444; --accent:#38bdf8;
     }
     *{box-sizing:border-box}
     body{margin:0;background:linear-gradient(180deg,#0b1220,#111827);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Pretendard,Apple SD Gothic Neo,Noto Sans KR,sans-serif;}
@@ -63,7 +57,7 @@
           <button class="btn" id="nextBtn" title="다음 문제 (N)">다음 문제 ▶</button>
           <button class="btn" id="hearBtn" title="영어 단어 듣기 (H)">단어 듣기 🔊</button>
           <label class="pill"><input type="checkbox" id="readKorean"/> 정답 후 한글도 읽기</label>
-          <label class="pill"><input type="checkbox" id="autoNext"/> 정답 후 자동 다음</label>
+          <label class="pill"><input type="checkbox" id="autoNext" checked/> 정답 후 자동 다음</label>
           <select class="pill" id="voiceEn"></select>
           <select class="pill" id="voiceKo"></select>
         </div>
@@ -76,7 +70,7 @@
           • <span class="kbd">N</span> : 다음 문제, <span class="kbd">H</span> : 단어 듣기<br/>
           • 보기 클릭 후 정답이 <span style="color:var(--primary)">초록</span>으로 표시돼요.<br/>
           • "정답 후 한글도 읽기"를 켜면 영어→한글 순서로 읽습니다.<br/>
-          • "자동 다음"을 켜면 정답 TTS 뒤 자동으로 다음 문제가 나옵니다.<br/>
+          • "자동 다음"을 켜면 정답 TTS 뒤 자동으로 다음 문제가 나옵니다.(대기 약 3.4초)<br/>
           • 우측 드롭다운으로 영어/한국어 음성을 선택할 수 있어요.<br/>
         </div>
         <hr style="border-color:#1f2937;margin:12px 0"/>
@@ -88,77 +82,7 @@
   </div>
 
 <script>
-const WORDS = [
-  {en:"apple", ko:"사과", hint:"fruit"},
-  {en:"banana", ko:"바나나", hint:"fruit"},
-  {en:"cat", ko:"고양이", hint:"animal"},
-  {en:"dog", ko:"개", hint:"animal"},
-  {en:"bird", ko:"새", hint:"animal"},
-  {en:"fish", ko:"물고기", hint:"animal"},
-  {en:"cow", ko:"소", hint:"farm"},
-  {en:"pig", ko:"돼지", hint:"farm"},
-  {en:"horse", ko:"말", hint:"farm"},
-  {en:"rabbit", ko:"토끼", hint:"animal"},
-  {en:"lion", ko:"사자", hint:"zoo"},
-  {en:"tiger", ko:"호랑이", hint:"zoo"},
-  {en:"bear", ko:"곰", hint:"zoo"},
-  {en:"monkey", ko:"원숭이", hint:"zoo"},
-  {en:"elephant", ko:"코끼리", hint:"zoo"},
-  {en:"giraffe", ko:"기린", hint:"zoo"},
-  {en:"zebra", ko:"얼룩말", hint:"zoo"},
-  {en:"chicken", ko:"닭", hint:"farm"},
-  {en:"duck", ko:"오리", hint:"animal"},
-  {en:"frog", ko:"개구리", hint:"animal"},
-  {en:"sun", ko:"태양", hint:"sky"},
-  {en:"moon", ko:"달", hint:"sky"},
-  {en:"star", ko:"별", hint:"sky"},
-  {en:"sky", ko:"하늘", hint:"sky"},
-  {en:"cloud", ko:"구름", hint:"weather"},
-  {en:"rain", ko:"비", hint:"weather"},
-  {en:"snow", ko:"눈", hint:"weather"},
-  {en:"water", ko:"물", hint:"drink"},
-  {en:"fire", ko:"불", hint:"hot"},
-  {en:"tree", ko:"나무", hint:"nature"},
-  {en:"flower", ko:"꽃", hint:"nature"},
-  {en:"grass", ko:"풀", hint:"nature"},
-  {en:"leaf", ko:"잎", hint:"nature"},
-  {en:"car", ko:"자동차", hint:"vehicle"},
-  {en:"bus", ko:"버스", hint:"vehicle"},
-  {en:"train", ko:"기차", hint:"vehicle"},
-  {en:"plane", ko:"비행기", hint:"vehicle"},
-  {en:"boat", ko:"배", hint:"vehicle"},
-  {en:"house", ko:"집", hint:"home"},
-  {en:"door", ko:"문", hint:"home"},
-  {en:"window", ko:"창문", hint:"home"},
-  {en:"bed", ko:"침대", hint:"home"},
-  {en:"chair", ko:"의자", hint:"home"},
-  {en:"table", ko:"탁자", hint:"home"},
-  {en:"book", ko:"책", hint:"study"},
-  {en:"pencil", ko:"연필", hint:"study"},
-  {en:"pen", ko:"펜", hint:"study"},
-  {en:"bag", ko:"가방", hint:"school"},
-  {en:"shoes", ko:"신발", hint:"wear"},
-  {en:"hat", ko:"모자", hint:"wear"},
-  {en:"shirt", ko:"셔츠", hint:"wear"},
-  {en:"pants", ko:"바지", hint:"wear"},
-  {en:"milk", ko:"우유", hint:"drink"},
-  {en:"juice", ko:"주스", hint:"drink"},
-  {en:"bread", ko:"빵", hint:"food"},
-  {en:"rice", ko:"밥", hint:"food"},
-  {en:"egg", ko:"계란", hint:"food"},
-  {en:"cake", ko:"케이크", hint:"food"},
-  {en:"candy", ko:"사탕", hint:"food"},
-  {en:"mom", ko:"엄마", hint:"family"},
-  {en:"dad", ko:"아빠", hint:"family"},
-  {en:"baby", ko:"아기", hint:"family"},
-  {en:"friend", ko:"친구", hint:"people"},
-  {en:"hello", ko:"안녕", hint:"greeting"},
-  {en:"bye", ko:"잘 가", hint:"greeting"},
-  {en:"thank you", ko:"고마워", hint:"phrase"},
-  {en:"please", ko:"부탁해", hint:"phrase"},
-  {en:"yes", ko:"네", hint:"answer"},
-  {en:"no", ko:"아니오", hint:"answer"}
-];
+const WORDS = [{en:"apple", ko:"사과", hint:"fruit"},{en:"banana", ko:"바나나", hint:"fruit"},{en:"cat", ko:"고양이", hint:"animal"},{en:"dog", ko:"개", hint:"animal"},{en:"bird", ko:"새", hint:"animal"},{en:"fish", ko:"물고기", hint:"animal"},{en:"cow", ko:"소", hint:"farm"},{en:"pig", ko:"돼지", hint:"farm"},{en:"horse", ko:"말", hint:"farm"},{en:"rabbit", ko:"토끼", hint:"animal"},{en:"lion", ko:"사자", hint:"zoo"},{en:"tiger", ko:"호랑이", hint:"zoo"},{en:"bear", ko:"곰", hint:"zoo"},{en:"monkey", ko:"원숭이", hint:"zoo"},{en:"elephant", ko:"코끼리", hint:"zoo"},{en:"giraffe", ko:"기린", hint:"zoo"},{en:"zebra", ko:"얼룩말", hint:"zoo"},{en:"chicken", ko:"닭", hint:"farm"},{en:"duck", ko:"오리", hint:"animal"},{en:"frog", ko:"개구리", hint:"animal"},{en:"sun", ko:"태양", hint:"sky"},{en:"moon", ko:"달", hint:"sky"},{en:"star", ko:"별", hint:"sky"},{en:"sky", ko:"하늘", hint:"sky"},{en:"cloud", ko:"구름", hint:"weather"},{en:"rain", ko:"비", hint:"weather"},{en:"snow", ko:"눈", hint:"weather"},{en:"water", ko:"물", hint:"drink"},{en:"fire", ko:"불", hint:"hot"},{en:"tree", ko:"나무", hint:"nature"},{en:"flower", ko:"꽃", hint:"nature"},{en:"grass", ko:"풀", hint:"nature"},{en:"leaf", ko:"잎", hint:"nature"},{en:"car", ko:"자동차", hint:"vehicle"},{en:"bus", ko:"버스", hint:"vehicle"},{en:"train", ko:"기차", hint:"vehicle"},{en:"plane", ko:"비행기", hint:"vehicle"},{en:"boat", ko:"배", hint:"vehicle"},{en:"house", ko:"집", hint:"home"},{en:"door", ko:"문", hint:"home"},{en:"window", ko:"창문", hint:"home"},{en:"bed", ko:"침대", hint:"home"},{en:"chair", ko:"의자", hint:"home"},{en:"table", ko:"탁자", hint:"home"},{en:"book", ko:"책", hint:"study"},{en:"pencil", ko:"연필", hint:"study"},{en:"pen", ko:"펜", hint:"study"},{en:"bag", ko:"가방", hint:"school"},{en:"shoes", ko:"신발", hint:"wear"},{en:"hat", ko:"모자", hint:"wear"},{en:"shirt", ko:"셔츠", hint:"wear"},{en:"pants", ko:"바지", hint:"wear"},{en:"milk", ko:"우유", hint:"drink"},{en:"juice", ko:"주스", hint:"drink"},{en:"bread", ko:"빵", hint:"food"},{en:"rice", ko:"밥", hint:"food"},{en:"egg", ko:"계란", hint:"food"},{en:"cake", ko:"케이크", hint:"food"},{en:"candy", ko:"사탕", hint:"food"},{en:"mom", ko:"엄마", hint:"family"},{en:"dad", ko:"아빠", hint:"family"},{en:"baby", ko:"아기", hint:"family"},{en:"friend", ko:"친구", hint:"people"},{en:"hello", ko:"안녕", hint:"greeting"},{en:"bye", ko:"잘 가", hint:"greeting"},{en:"thank you", ko:"고마워", hint:"phrase"},{en:"please", ko:"부탁해", hint:"phrase"},{en:"yes", ko:"네", hint:"answer"},{en:"no", ko:"아니오", hint:"answer"}];
 
 const $ = (sel)=>document.querySelector(sel);
 const $$ = (sel)=>Array.from(document.querySelectorAll(sel));
@@ -235,7 +159,7 @@ function handleAnswer(btn,isCorrect){
     setTimeout(()=>speak(current.word.ko,'ko','ko'), 700);
   }
   if($('#autoNext').checked){
-    setTimeout(()=>{ makeQuestion(); }, 1400);
+    setTimeout(()=>{ makeQuestion(); }, 3400);
   }
 }
 
@@ -267,8 +191,8 @@ window.addEventListener('keydown',(e)=>{
 
 (function init(){
   const saved = JSON.parse(localStorage.getItem('quizSettings')||'{}');
-  if(saved.readKorean) $('#readKorean').checked = true;
-  if(saved.autoNext) $('#autoNext').checked = true;
+  document.getElementById('autoNext').checked = (saved.autoNext === undefined) ? true : !!saved.autoNext;
+  document.getElementById('readKorean').checked = !!saved.readKorean;
   updateScore();
   makeQuestion();
 })();
