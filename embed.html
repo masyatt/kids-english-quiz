@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Kids English Quiz · Embed</title>
+  <style>
+    :root{
+      --bg:#0f172a; --card:#111827; --text:#e5e7eb; --muted:#94a3b8; --primary:#22c55e; --danger:#ef4444; --accent:#38bdf8;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:#0b1220;color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Pretendard,Apple SD Gothic Neo,Noto Sans KR,sans-serif;}
+    .wrap{padding:12px env(safe-area-inset-right) 16px env(safe-area-inset-left); max-width:760px; margin:0 auto;}
+    .card{background:var(--card);border:1px solid #1f2937;border-radius:16px;padding:14px}
+    .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+    .title{font-weight:800;font-size:18px}
+    .score{background:#0b1220;border:1px solid #1f2937;border-radius:999px;padding:6px 10px;font-weight:700}
+    .word{font-size:36px;font-weight:900;text-align:center}
+    .hint{font-size:13px;color:var(--muted);text-align:center;margin-top:2px}
+    .options{display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px}
+    @media(min-width:560px){.options{grid-template-columns:1fr 1fr}}
+    button.option{all:unset;cursor:pointer;padding:14px 14px;border:1px solid #1f2937;border-radius:12px;background:#0b1220}
+    button.option.correct{border-color:var(--primary);background:#052e17}
+    button.option.wrong{border-color:var(--danger);background:#2a0a0a}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+    .btn{all:unset;cursor:pointer;padding:9px 12px;border:1px solid #1f2937;border-radius:10px;background:#0b1220}
+    .pill{padding:6px 8px;border-radius:999px;background:#0b1220;border:1px solid #1f2937}
+    .progress{height:6px;background:#0b1220;border:1px solid #1f2937;border-radius:999px;overflow:hidden;margin-top:8px}
+    .bar{height:100%;width:0;background:linear-gradient(90deg,var(--accent),#22d3ee,#22c55e)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="top">
+        <div class="title">유아 영어 퀴즈</div>
+        <div class="score" id="scoreBox">0 / 0</div>
+      </div>
+      <div class="word" id="word">loading…</div>
+      <div class="hint" id="hint"></div>
+      <div class="options" id="options"></div>
+      <div class="controls">
+        <button class="btn" id="nextBtn" title="다음 문제">다음 ▶</button>
+        <button class="btn" id="hearBtn" title="듣기">🔊</button>
+        <label class="pill"><input type="checkbox" id="readKorean"/> 한글도 읽기</label>
+        <label class="pill"><input type="checkbox" id="autoNext"/> 자동 다음</label>
+        <select class="pill" id="voiceEn"></select>
+        <select class="pill" id="voiceKo"></select>
+      </div>
+      <div class="progress"><div class="bar" id="bar"></div></div>
+    </div>
+  </div>
+
+<script>
+const WORDS = [
+  {en:"apple", ko:"사과", hint:"fruit"},
+  {en:"banana", ko:"바나나", hint:"fruit"},
+  {en:"cat", ko:"고양이", hint:"animal"},
+  {en:"dog", ko:"개", hint:"animal"},
+  {en:"bird", ko:"새", hint:"animal"},
+  {en:"fish", ko:"물고기", hint:"animal"},
+  {en:"cow", ko:"소", hint:"farm"},
+  {en:"pig", ko:"돼지", hint:"farm"},
+  {en:"horse", ko:"말", hint:"farm"},
+  {en:"rabbit", ko:"토끼", hint:"animal"},
+  {en:"lion", ko:"사자", hint:"zoo"},
+  {en:"tiger", ko:"호랑이", hint:"zoo"},
+  {en:"bear", ko:"곰", hint:"zoo"},
+  {en:"monkey", ko:"원숭이", hint:"zoo"},
+  {en:"elephant", ko:"코끼리", hint:"zoo"},
+  {en:"giraffe", ko:"기린", hint:"zoo"},
+  {en:"zebra", ko:"얼룩말", hint:"zoo"},
+  {en:"chicken", ko:"닭", hint:"farm"},
+  {en:"duck", ko:"오리", hint:"animal"},
+  {en:"frog", ko:"개구리", hint:"animal"},
+  {en:"sun", ko:"태양", hint:"sky"},
+  {en:"moon", ko:"달", hint:"sky"},
+  {en:"star", ko:"별", hint:"sky"},
+  {en:"sky", ko:"하늘", hint:"sky"},
+  {en:"cloud", ko:"구름", hint:"weather"},
+  {en:"rain", ko:"비", hint:"weather"},
+  {en:"snow", ko:"눈", hint:"weather"},
+  {en:"water", ko:"물", hint:"drink"},
+  {en:"fire", ko:"불", hint:"hot"},
+  {en:"tree", ko:"나무", hint:"nature"},
+  {en:"flower", ko:"꽃", hint:"nature"},
+  {en:"grass", ko:"풀", hint:"nature"},
+  {en:"leaf", ko:"잎", hint:"nature"},
+  {en:"car", ko:"자동차", hint:"vehicle"},
+  {en:"bus", ko:"버스", hint:"vehicle"},
+  {en:"train", ko:"기차", hint:"vehicle"},
+  {en:"plane", ko:"비행기", hint:"vehicle"},
+  {en:"boat", ko:"배", hint:"vehicle"},
+  {en:"house", ko:"집", hint:"home"},
+  {en:"door", ko:"문", hint:"home"},
+  {en:"window", ko:"창문", hint:"home"},
+  {en:"bed", ko:"침대", hint:"home"},
+  {en:"chair", ko:"의자", hint:"home"},
+  {en:"table", ko:"탁자", hint:"home"},
+  {en:"book", ko:"책", hint:"study"},
+  {en:"pencil", ko:"연필", hint:"study"},
+  {en:"pen", ko:"펜", hint:"study"},
+  {en:"bag", ko:"가방", hint:"school"},
+  {en:"shoes", ko:"신발", hint:"wear"},
+  {en:"hat", ko:"모자", hint:"wear"},
+  {en:"shirt", ko:"셔츠", hint:"wear"},
+  {en:"pants", ko:"바지", hint:"wear"},
+  {en:"milk", ko:"우유", hint:"drink"},
+  {en:"juice", ko:"주스", hint:"drink"},
+  {en:"bread", ko:"빵", hint:"food"},
+  {en:"rice", ko:"밥", hint:"food"},
+  {en:"egg", ko:"계란", hint:"food"},
+  {en:"cake", ko:"케이크", hint:"food"},
+  {en:"candy", ko:"사탕", hint:"food"},
+  {en:"mom", ko:"엄마", hint:"family"},
+  {en:"dad", ko:"아빠", hint:"family"},
+  {en:"baby", ko:"아기", hint:"family"},
+  {en:"friend", ko:"친구", hint:"people"},
+  {en:"hello", ko:"안녕", hint:"greeting"},
+  {en:"bye", ko:"잘 가", hint:"greeting"},
+  {en:"thank you", ko:"고마워", hint:"phrase"},
+  {en:"please", ko:"부탁해", hint:"phrase"},
+  {en:"yes", ko:"네", hint:"answer"},
+  {en:"no", ko:"아니오", hint:"answer"}
+];
+
+const $ = (sel)=>document.querySelector(sel);
+const $$ = (sel)=>Array.from(document.querySelectorAll(sel));
+const rand = (n)=>Math.floor(Math.random()*n);
+function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]] } return arr }
+
+let current = null;
+let answered = false;
+let correctCount = 0, totalCount = 0;
+
+let voices = [];
+function loadVoices(){
+  voices = speechSynthesis.getVoices();
+  const enSel = $('#voiceEn');
+  const koSel = $('#voiceKo');
+  enSel.innerHTML=''; koSel.innerHTML='';
+  voices.filter(v=>/en/i.test(v.lang)).forEach(v=>{
+    const opt=document.createElement('option'); opt.value=v.name; opt.textContent=`EN • ${v.name} (${v.lang})`; enSel.appendChild(opt);
+  });
+  voices.filter(v=>/(ko|Korean)/i.test(v.lang+v.name)).forEach(v=>{
+    const opt=document.createElement('option'); opt.value=v.name; opt.textContent=`KO • ${v.name} (${v.lang})`; koSel.appendChild(opt);
+  });
+}
+if('speechSynthesis' in window){
+  loadVoices();
+  window.speechSynthesis.onvoiceschanged = loadVoices;
+}
+
+function speak(text, lang='en', which='en'){
+  if(!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  let sel = which==='en' ? $('#voiceEn') : $('#voiceKo');
+  const chosen = voices.find(v=>v.name===sel.value);
+  if(chosen) u.voice = chosen;
+  u.lang = chosen?.lang || (which==='en' ? 'en-US' : 'ko-KR');
+  u.rate = 0.95; u.pitch = 1.0; u.volume = 1.0;
+  window.speechSynthesis.speak(u);
+}
+
+function makeQuestion(){
+  answered = false;
+  const word = WORDS[rand(WORDS.length)];
+  const wrongs = shuffle(WORDS.filter(w=>w.ko!==word.ko)).slice(0,3).map(w=>w.ko);
+  const choices = shuffle([word.ko, ...wrongs]);
+  current = {word, choices};
+  $('#word').textContent = word.en;
+  $('#hint').textContent = word.hint ? `힌트: ${word.hint}` : '';
+  const optWrap = $('#options');
+  optWrap.innerHTML='';
+  choices.forEach((txt)=>{
+    const b=document.createElement('button');
+    b.className='option'; b.textContent=txt;
+    b.addEventListener('click',()=>handleAnswer(b, txt===word.ko));
+    optWrap.appendChild(b);
+  });
+  const pct = totalCount===0 ? 0 : Math.min(100, Math.round((correctCount/totalCount)*100));
+  $('#bar').style.width = pct + '%';
+}
+
+function handleAnswer(btn,isCorrect){
+  if(answered) return; answered = true; totalCount++;
+  $$('.option').forEach(b=>b.disabled=true);
+  btn.classList.add(isCorrect? 'correct':'wrong');
+  const correctBtn = $$('.option').find(b=>b.textContent===current.word.ko);
+  correctBtn.classList.add('correct');
+  if(isCorrect) correctCount++;
+  updateScore();
+  speak(current.word.en,'en','en');
+  if($('#readKorean').checked){
+    setTimeout(()=>speak(current.word.ko,'ko','ko'), 700);
+  }
+  if($('#autoNext').checked){
+    setTimeout(()=>{ makeQuestion(); }, 1400);
+  }
+}
+
+function updateScore(){
+  $('#scoreBox').textContent = `${correctCount} / ${totalCount}`;
+  const pct = totalCount===0 ? 0 : Math.min(100, Math.round((correctCount/totalCount)*100));
+  $('#bar').style.width = pct + '%';
+}
+
+$('#nextBtn').addEventListener('click',()=>makeQuestion());
+$('#hearBtn').addEventListener('click',()=>{ if(current) speak(current.word.en,'en','en'); });
+
+(function init(){
+  updateScore();
+  makeQuestion();
+})();
+</script>
+</body>
+</html>

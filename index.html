@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>유아용 영어 기초단어 퀴즈</title>
+  <style>
+    :root{
+      --bg:#0f172a; /* slate-900 */
+      --card:#111827cc; /* slate-900/80 */
+      --text:#e5e7eb; /* slate-200 */
+      --muted:#94a3b8; /* slate-400 */
+      --primary:#22c55e; /* green-500 */
+      --danger:#ef4444; /* red-500 */
+      --accent:#38bdf8; /* sky-400 */
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(180deg,#0b1220,#111827);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Pretendard,Apple SD Gothic Neo,Noto Sans KR,sans-serif;}
+    .container{max-width:960px;margin:0 auto;padding:20px}
+    header{display:flex;gap:16px;align-items:center;justify-content:space-between;margin-bottom:16px}
+    .title{font-weight:800;letter-spacing:.3px}
+    .title .sub{display:block;font-size:13px;color:var(--muted);font-weight:500}
+    .card{background:var(--card);backdrop-filter:blur(8px);border:1px solid #1f2937;border-radius:20px;padding:18px}
+    .row{display:grid;grid-template-columns:1fr;gap:16px}
+    @media(min-width:760px){.row{grid-template-columns:2fr 1fr}}
+    .word{font-size:40px;font-weight:900;letter-spacing:.5px;text-align:center}
+    .hint{font-size:14px;color:var(--muted);text-align:center;margin-top:4px}
+    .options{display:grid;grid-template-columns:1fr;gap:12px;margin-top:16px}
+    @media(min-width:560px){.options{grid-template-columns:1fr 1fr}}
+    button.option{all:unset;cursor:pointer;padding:14px 16px;border:1px solid #1f2937;border-radius:14px;background:#0b1220;transition:transform .08s ease, background .2s ease, border-color .2s}
+    button.option:hover{transform:translateY(-1px);border-color:#334155}
+    button.option.correct{border-color:var(--primary);background:#052e17}
+    button.option.wrong{border-color:var(--danger);background:#2a0a0a}
+    .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .controls button,.controls select,.controls label{font-size:14px}
+    .btn{all:unset;cursor:pointer;padding:10px 14px;border:1px solid #1f2937;border-radius:12px;background:#0b1220}
+    .btn:hover{border-color:#334155}
+    .pill{padding:8px 10px;border-radius:999px;background:#0b1220;border:1px solid #1f2937}
+    .score{font-weight:700}
+    .progress{height:8px;background:#0b1220;border:1px solid #1f2937;border-radius:999px;overflow:hidden}
+    .bar{height:100%;width:0;background:linear-gradient(90deg,var(--accent),#22d3ee,#22c55e)}
+    .small{font-size:12px;color:var(--muted)}
+    .kbd{padding:2px 6px;border:1px solid #334155;border-bottom-width:3px;border-radius:6px;background:#0b1220;font-family:ui-monospace,monospace}
+    footer{margin-top:18px;color:var(--muted);font-size:12px;text-align:center}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="title">
+        <div style="font-size:22px">유아용 영어 기초단어 퀴즈</div>
+        <span class="sub">위에 보이는 <strong>영어 단어</strong>를 보고 아래 <strong>한글 뜻</strong>을 고르세요. 정답 시 TTS가 읽어줘요.</span>
+      </div>
+      <div class="pill score" id="scoreBox">0 / 0</div>
+    </header>
+
+    <div class="row">
+      <section class="card">
+        <div class="word" id="word">loading…</div>
+        <div class="hint" id="hint"></div>
+        <div class="options" id="options"></div>
+        <div class="controls" style="margin-top:14px">
+          <button class="btn" id="nextBtn" title="다음 문제 (N)">다음 문제 ▶</button>
+          <button class="btn" id="hearBtn" title="영어 단어 듣기 (H)">단어 듣기 🔊</button>
+          <label class="pill"><input type="checkbox" id="readKorean"/> 정답 후 한글도 읽기</label>
+          <label class="pill"><input type="checkbox" id="autoNext"/> 정답 후 자동 다음</label>
+          <select class="pill" id="voiceEn"></select>
+          <select class="pill" id="voiceKo"></select>
+        </div>
+        <div class="progress" style="margin-top:10px"><div class="bar" id="bar"></div></div>
+      </section>
+
+      <aside class="card">
+        <div style="font-weight:700;margin-bottom:8px">설정 & 도움말</div>
+        <div class="small" style="line-height:1.7">
+          • <span class="kbd">N</span> : 다음 문제, <span class="kbd">H</span> : 단어 듣기<br/>
+          • 보기 클릭 후 정답이 <span style="color:var(--primary)">초록</span>으로 표시돼요.<br/>
+          • "정답 후 한글도 읽기"를 켜면 영어→한글 순서로 읽습니다.<br/>
+          • "자동 다음"을 켜면 정답 TTS 뒤 자동으로 다음 문제가 나옵니다.<br/>
+          • 우측 드롭다운으로 영어/한국어 음성을 선택할 수 있어요.<br/>
+        </div>
+        <hr style="border-color:#1f2937;margin:12px 0"/>
+        <div class="small">단어 추가/수정은 아래 코드의 <strong>WORDS</strong> 배열을 편집하면 됩니다.</div>
+      </aside>
+    </div>
+
+    <footer>© 2025 Basic English Quiz • Web Speech API (TTS) 사용</footer>
+  </div>
+
+<script>
+const WORDS = [
+  {en:"apple", ko:"사과", hint:"fruit"},
+  {en:"banana", ko:"바나나", hint:"fruit"},
+  {en:"cat", ko:"고양이", hint:"animal"},
+  {en:"dog", ko:"개", hint:"animal"},
+  {en:"bird", ko:"새", hint:"animal"},
+  {en:"fish", ko:"물고기", hint:"animal"},
+  {en:"cow", ko:"소", hint:"farm"},
+  {en:"pig", ko:"돼지", hint:"farm"},
+  {en:"horse", ko:"말", hint:"farm"},
+  {en:"rabbit", ko:"토끼", hint:"animal"},
+  {en:"lion", ko:"사자", hint:"zoo"},
+  {en:"tiger", ko:"호랑이", hint:"zoo"},
+  {en:"bear", ko:"곰", hint:"zoo"},
+  {en:"monkey", ko:"원숭이", hint:"zoo"},
+  {en:"elephant", ko:"코끼리", hint:"zoo"},
+  {en:"giraffe", ko:"기린", hint:"zoo"},
+  {en:"zebra", ko:"얼룩말", hint:"zoo"},
+  {en:"chicken", ko:"닭", hint:"farm"},
+  {en:"duck", ko:"오리", hint:"animal"},
+  {en:"frog", ko:"개구리", hint:"animal"},
+  {en:"sun", ko:"태양", hint:"sky"},
+  {en:"moon", ko:"달", hint:"sky"},
+  {en:"star", ko:"별", hint:"sky"},
+  {en:"sky", ko:"하늘", hint:"sky"},
+  {en:"cloud", ko:"구름", hint:"weather"},
+  {en:"rain", ko:"비", hint:"weather"},
+  {en:"snow", ko:"눈", hint:"weather"},
+  {en:"water", ko:"물", hint:"drink"},
+  {en:"fire", ko:"불", hint:"hot"},
+  {en:"tree", ko:"나무", hint:"nature"},
+  {en:"flower", ko:"꽃", hint:"nature"},
+  {en:"grass", ko:"풀", hint:"nature"},
+  {en:"leaf", ko:"잎", hint:"nature"},
+  {en:"car", ko:"자동차", hint:"vehicle"},
+  {en:"bus", ko:"버스", hint:"vehicle"},
+  {en:"train", ko:"기차", hint:"vehicle"},
+  {en:"plane", ko:"비행기", hint:"vehicle"},
+  {en:"boat", ko:"배", hint:"vehicle"},
+  {en:"house", ko:"집", hint:"home"},
+  {en:"door", ko:"문", hint:"home"},
+  {en:"window", ko:"창문", hint:"home"},
+  {en:"bed", ko:"침대", hint:"home"},
+  {en:"chair", ko:"의자", hint:"home"},
+  {en:"table", ko:"탁자", hint:"home"},
+  {en:"book", ko:"책", hint:"study"},
+  {en:"pencil", ko:"연필", hint:"study"},
+  {en:"pen", ko:"펜", hint:"study"},
+  {en:"bag", ko:"가방", hint:"school"},
+  {en:"shoes", ko:"신발", hint:"wear"},
+  {en:"hat", ko:"모자", hint:"wear"},
+  {en:"shirt", ko:"셔츠", hint:"wear"},
+  {en:"pants", ko:"바지", hint:"wear"},
+  {en:"milk", ko:"우유", hint:"drink"},
+  {en:"juice", ko:"주스", hint:"drink"},
+  {en:"bread", ko:"빵", hint:"food"},
+  {en:"rice", ko:"밥", hint:"food"},
+  {en:"egg", ko:"계란", hint:"food"},
+  {en:"cake", ko:"케이크", hint:"food"},
+  {en:"candy", ko:"사탕", hint:"food"},
+  {en:"mom", ko:"엄마", hint:"family"},
+  {en:"dad", ko:"아빠", hint:"family"},
+  {en:"baby", ko:"아기", hint:"family"},
+  {en:"friend", ko:"친구", hint:"people"},
+  {en:"hello", ko:"안녕", hint:"greeting"},
+  {en:"bye", ko:"잘 가", hint:"greeting"},
+  {en:"thank you", ko:"고마워", hint:"phrase"},
+  {en:"please", ko:"부탁해", hint:"phrase"},
+  {en:"yes", ko:"네", hint:"answer"},
+  {en:"no", ko:"아니오", hint:"answer"}
+];
+
+const $ = (sel)=>document.querySelector(sel);
+const $$ = (sel)=>Array.from(document.querySelectorAll(sel));
+const rand = (n)=>Math.floor(Math.random()*n);
+function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]] } return arr }
+
+let current = null;
+let answered = false;
+let correctCount = 0, totalCount = 0;
+
+let voices = [];
+function loadVoices(){
+  voices = speechSynthesis.getVoices();
+  const enSel = $('#voiceEn');
+  const koSel = $('#voiceKo');
+  enSel.innerHTML=''; koSel.innerHTML='';
+  voices.filter(v=>/en/i.test(v.lang)).forEach(v=>{
+    const opt=document.createElement('option'); opt.value=v.name; opt.textContent=`EN • ${v.name} (${v.lang})`; enSel.appendChild(opt);
+  });
+  voices.filter(v=>/(ko|Korean)/i.test(v.lang+v.name)).forEach(v=>{
+    const opt=document.createElement('option'); opt.value=v.name; opt.textContent=`KO • ${v.name} (${v.lang})`; koSel.appendChild(opt);
+  });
+  const saved = JSON.parse(localStorage.getItem('quizSettings')||'{}');
+  if(saved.voiceEn && [...enSel.options].some(o=>o.value===saved.voiceEn)) enSel.value=saved.voiceEn;
+  if(saved.voiceKo && [...koSel.options].some(o=>o.value===saved.voiceKo)) koSel.value=saved.voiceKo;
+}
+if('speechSynthesis' in window){
+  loadVoices();
+  window.speechSynthesis.onvoiceschanged = loadVoices;
+}
+
+function speak(text, lang='en', which='en'){
+  if(!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  let sel = which==='en' ? $('#voiceEn') : $('#voiceKo');
+  const chosen = voices.find(v=>v.name===sel.value);
+  if(chosen) u.voice = chosen;
+  u.lang = chosen?.lang || (which==='en' ? 'en-US' : 'ko-KR');
+  u.rate = 0.95; u.pitch = 1.0; u.volume = 1.0;
+  window.speechSynthesis.speak(u);
+}
+
+function makeQuestion(){
+  answered = false;
+  const word = WORDS[rand(WORDS.length)];
+  const wrongs = shuffle(WORDS.filter(w=>w.ko!==word.ko)).slice(0,3).map(w=>w.ko);
+  const choices = shuffle([word.ko, ...wrongs]);
+  current = {word, choices};
+  $('#word').textContent = word.en;
+  $('#hint').textContent = word.hint ? `힌트: ${word.hint}` : '';
+  const optWrap = $('#options');
+  optWrap.innerHTML='';
+  choices.forEach((txt)=>{
+    const b=document.createElement('button');
+    b.className='option'; b.textContent=txt;
+    b.addEventListener('click',()=>handleAnswer(b, txt===word.ko));
+    optWrap.appendChild(b);
+  });
+  const pct = totalCount===0 ? 0 : Math.min(100, Math.round((correctCount/totalCount)*100));
+  $('#bar').style.width = pct + '%';
+}
+
+function handleAnswer(btn,isCorrect){
+  if(answered) return; answered = true; totalCount++;
+  $$('.option').forEach(b=>b.disabled=true);
+  btn.classList.add(isCorrect? 'correct':'wrong');
+  const correctBtn = $$('.option').find(b=>b.textContent===current.word.ko);
+  correctBtn.classList.add('correct');
+  if(isCorrect) correctCount++;
+  updateScore();
+  speak(current.word.en,'en','en');
+  if($('#readKorean').checked){
+    setTimeout(()=>speak(current.word.ko,'ko','ko'), 700);
+  }
+  if($('#autoNext').checked){
+    setTimeout(()=>{ makeQuestion(); }, 1400);
+  }
+}
+
+function updateScore(){
+  $('#scoreBox').textContent = `${correctCount} / ${totalCount}`;
+  const pct = totalCount===0 ? 0 : Math.min(100, Math.round((correctCount/totalCount)*100));
+  $('#bar').style.width = pct + '%';
+}
+
+$('#nextBtn').addEventListener('click',()=>makeQuestion());
+$('#hearBtn').addEventListener('click',()=>{ if(current) speak(current.word.en,'en','en'); });
+
+window.addEventListener('keydown',(e)=>{
+  if(e.key==='n' || e.key==='N') { e.preventDefault(); makeQuestion(); }
+  if(e.key==='h' || e.key==='H') { e.preventDefault(); if(current) speak(current.word.en,'en','en'); }
+});
+
+['voiceEn','voiceKo','readKorean','autoNext'].forEach(id=>{
+  document.getElementById(id).addEventListener('change',()=>{
+    const data={
+      voiceEn: $('#voiceEn').value,
+      voiceKo: $('#voiceKo').value,
+      readKorean: $('#readKorean').checked,
+      autoNext: $('#autoNext').checked,
+    };
+    localStorage.setItem('quizSettings', JSON.stringify(data));
+  });
+});
+
+(function init(){
+  const saved = JSON.parse(localStorage.getItem('quizSettings')||'{}');
+  if(saved.readKorean) $('#readKorean').checked = true;
+  if(saved.autoNext) $('#autoNext').checked = true;
+  updateScore();
+  makeQuestion();
+})();
+</script>
+</body>
+</html>
